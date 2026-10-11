@@ -4,46 +4,23 @@ Ce projet implémente et compare les trois stratégies de mapping d'héritage ob
 
 ---
 
-## 1. Les 3 Stratégies d'Héritage implémentées
+## 1. Classes et Stratégies d'Héritage Implémentées
 
-### Stratégie 1 : `SINGLE_TABLE` (Une seule table par hiérarchie)
-- **Hiérarchie :** `CompteBancaire` (racine) $\rightarrow$ `CompteCourant` & `CompteEpargne`.
-- **Principe :** Une unique table `t_comptes_bancaires` stocke tous les enregistrements. Une colonne discriminante `@DiscriminatorColumn(name = "type_compte")` distingue les types (`COURANT` / `EPARGNE`).
-- **Avantage :** Excellentes performances en lecture (aucun JOIN nécessaire).
-- **Inconvénient :** Colonnes spécifiques nullables.
+Voici la mise en œuvre des 3 stratégies (`SINGLE_TABLE`, `JOINED`, et `TABLE_PER_CLASS`) :
 
-### Stratégie 2 : `JOINED` (Table par sous-classe avec jointure)
-- **Hiérarchie :** `VehiculeService` (racine) $\rightarrow$ `VoitureTourisme` & `CamionLivraison`.
-- **Principe :** Une table pour la classe mère (`t_vehicules_parc`) contenant les attributs communs, et une table dédiée pour chaque classe fille (`t_voitures_tourisme`, `t_camions_livraison`) liée par clé étrangère / clé primaire.
-- **Avantage :** Schéma relationnel normalisé sans colonnes nulles superflues.
-- **Inconvénient :** Requêtes polymorphes nécessitant des jointures SQL (`LEFT OUTER JOIN`).
+![Stratégies de mapping d'héritage](docs/images/01-strategies-mapping.png)
 
-### Stratégie 3 : `TABLE_PER_CLASS` (Une table par classe concrète)
-- **Hiérarchie :** `Collaborateur` (abstraite) $\rightarrow$ `Developpeur` & `ChefProjet`.
-- **Principe :** Chaque classe concrète possède sa propre table autonome (`t_collaborateurs_dev`, `t_collaborateurs_chef`) contenant la totalité des attributs.
-- **Avantage :** Modèle physique simple par entité.
-- **Inconvénient :** Les requêtes sur la classe mère utilisent des `UNION ALL`.
+1. **`SINGLE_TABLE`** : Hiérarchie `CompteBancaire` (`CompteCourant` et `CompteEpargne`) avec colonne discriminante.
+2. **`JOINED`** : Hiérarchie `VehiculeService` (`VoitureTourisme` et `CamionLivraison`) avec tables jointes par clés primaires.
+3. **`TABLE_PER_CLASS`** : Hiérarchie `Collaborateur` (`Developpeur` et `ChefProjet`) avec tables distinctes autonomes.
 
 ---
 
-## 2. Traces des Requêtes Polymorphes Réalisées
+## 2. Traces et Résultats de Tests dans le Terminal (CMD)
 
-```sql
--- Consultation polymorphe SINGLE_TABLE
-SELECT * FROM t_comptes_bancaires;
+Exécution du test polymorphique démontrant les insertions et les requêtes SQL appropriées pour chaque stratégie :
 
--- Consultation polymorphe JOINED
-SELECT * FROM t_vehicules_parc v
-LEFT JOIN t_voitures_tourisme vt ON v.id_vehicule = vt.id_voiture
-LEFT JOIN t_camions_livraison cl ON v.id_vehicule = cl.id_camion;
-
--- Consultation polymorphe TABLE_PER_CLASS
-SELECT * FROM (
-    SELECT id_collaborateur, nom_prenom, salaire_base FROM t_collaborateurs_chef
-    UNION ALL
-    SELECT id_collaborateur, nom_prenom, salaire_base FROM t_collaborateurs_dev
-);
-```
+![Résultat du test en CMD](docs/images/02-execution-cmd.png)
 
 ---
 
